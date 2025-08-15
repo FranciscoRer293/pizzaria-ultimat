@@ -224,4 +224,4 @@ if (!modoSimulacao) {
   console.log('🧪 Simulação ativa — digite mensagens:');
   const readline = require('readline').createInterface({ input: process.stdin, output: process.stdout });
   readline.on('line', line => processarMensagem('cliente-simulado', line, 'Cliente Teste'));
-});
+}
