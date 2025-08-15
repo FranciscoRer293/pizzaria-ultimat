@@ -163,12 +163,7 @@ function levenshtein(s1, s2) {
 
 // === Inicialização ===
 const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    headless: true,
-    executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  }
+  authStrategy: new LocalAuth()
 });
 
 if (!modoSimulacao) {
@@ -370,4 +365,5 @@ if (!modoSimulacao) {
   console.log('🧪 Simulação ativa — digite mensagens:');
   const readline = require('readline').createInterface({ input: process.stdin, output: process.stdout });
   readline.on('line', line => processarMensagem('cliente-simulado', line, 'Cliente Teste'));
+
 }
