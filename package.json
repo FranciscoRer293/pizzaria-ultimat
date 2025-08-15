@@ -6,11 +6,11 @@
     "start": "node chatbot_pizzaria_fluxo_automatico.js"
   },
   "dependencies": {
-    "@adiwajshing/baileys": "^6.5.0",
+    "@adiwajshing/baileys": "^6.4.0",
     "@hapi/boom": "^10.0.1",
-    "@google/generative-ai": "^0.24.1",
     "dotenv": "^16.4.1",
     "moment-timezone": "^0.5.48",
+    "openai": "^4.0.0",
     "qrcode-terminal": "^0.12.0"
   }
 }
