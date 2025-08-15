@@ -207,8 +207,10 @@ async function connectToWhatsApp() {
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
             console.log('Conexão fechada. Reconectando...', shouldReconnect);
+            // Removido o loop de reconexão automática para que você tenha tempo de escanear o QR code
             if (shouldReconnect) {
-                connectToWhatsApp();
+              console.log('Por favor, reinicie o processo para tentar uma nova conexão.');
+              // O processo PM2 vai tentar reiniciar, mas a sessão antiga foi limpa.
             }
         } else if (connection === 'open') {
             console.log('✅ Conectado ao WhatsApp!');
