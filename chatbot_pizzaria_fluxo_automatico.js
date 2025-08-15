@@ -1,4 +1,4 @@
-// chatbot_pizzaria_fluxo_automatico.js - BOT Pizzaria Di Casa (Completo com Baileys e IA)
+// chatbot_pizzaria_fluxo_automatico.js - BOT Pizzaria Di Casa (Sem IA)
 require('dotenv').config();
 
 const {
@@ -12,7 +12,7 @@ const qrcode = require('qrcode-terminal');
 const moment = require('moment-timezone');
 const fs = require('fs');
 const path = require('path');
-const { interpretarMensagem } = require('./ia'); // IA integrada aqui
+// const { interpretarMensagem } = require('./ia'); // A IA foi removida daqui
 
 // ===== CONFIG =====
 const PIX_INFO = {
