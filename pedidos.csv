@@ -1,0 +1,8 @@
+nome,endereco,bairro,pagamento,pedidos,total,status,datahora,numero
+"Francisco Araujo","Rua sucupira","Centro","pix"," | 1x Pizza G (de calabresa) – R$45.00","47.00","Pendente","2025-08-13 09:50","559991056556@c.us"
+"undefined","undefined","Bairro : jardim de Aláh","pix","🧾 RESUMO DO PEDIDO: | 1x Pizza M (calabresa / portuguesa) – R$35.00","35.00","Pendente","2025-08-14 12:52","559992012059@c.us"
+"undefined","undefined","Centro","dinheiro","🧾 RESUMO DO PEDIDO: | 1x Pizza G (de calabresa) – R$45.00 | 1x Pizza P () – R$25.00","75.00","Pago","2025-08-14 13:20","559991056556@c.us"
+"Francisco Araujo","Rua sucupira Q 35 L 21","Nova açailandia 2","pix"," | 1x Pizza G (frango com catupiry) – R$45.00","47.00","Pendente","2025-08-15 12:48","cliente-simulado"
+"Francisco Araujo","Rua sucupira Q 35 L 21","Nova açailandia 2","comprovante"," | 1x Pizza G (frango com catupiry) – R$45.00","47.00","Pago","2025-08-15 12:48","cliente-simulado"
+"francisc","ndvlnsvnsdnvçlsd","Nova açailandia 2","pix"," | 1x Pizza G (Calabresa) – R$45.00","53.00","Pendente","2025-08-15 13:04","cliente-simulado"
+"Francisco Araújo Mesquita","Bla bla bla","Nova acailandia 2","Pix"," | 1x Pizza G (Calabresa) – R$45.00","53.50","Pendente","2025-08-15 14:03","559991638915@c.us"
