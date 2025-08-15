@@ -165,7 +165,8 @@ const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
-    executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    // Caminho do executável do Chrome removido para permitir que o Puppeteer encontre-o automaticamente no Linux.
+    // O caminho "C:/Program Files/..." era específico para Windows e causava erro no ambiente Linux.
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   }
 });
