@@ -167,7 +167,10 @@ const client = new Client({
 });
 
 if (!modoSimulacao) {
-  client.on('qr', qr => qrcode.generate(qr, { small: true }));
+  client.on('qr', qr => {
+    console.log('📌 QR Code para WhatsApp (copie e cole em https://web.whatsapp.com/qrcode ou gerador online):');
+    console.log(qr);
+  });
   client.on('ready', () => console.log('✅ WhatsApp pronto!'));
   client.initialize();
 }
@@ -193,7 +196,6 @@ async function processarMensagem(from, raw, pushname) {
   }
 
   if (!estado) {
-    // Nova lógica para capturar apenas o sabor e iniciar o fluxo de pedido
     const saborPedido = CARDAPIO.Sabores.find(sabor => text.includes(sabor.toLowerCase().replace('/catupiry', '')));
     if (saborPedido) {
       pedidosEmAndamento.set(from, { etapa: 'tamanho_quantidade', sabor: saborPedido });
@@ -228,142 +230,9 @@ Exemplo: 1 G Calabresa com borda e 1 F metade Frango/Catupiry, metade Portuguesa
     if (text === '5') return enviar(from, '📲 Cardápio digital: https://instadelivery.com.br/pizzariadicasa1');
   }
 
-  // Lógica para tratar a resposta de quantidade e tamanho após a escolha do sabor
   if (estado && estado.etapa === 'tamanho_quantidade') {
     const regex = /(\d+)\s*(P|G|F)/i;
     const match = regex.exec(text);
     if (match) {
         const qtd = parseInt(match[1]);
-        const tamanho = match[2].toUpperCase();
-        const sabor = estado.sabor;
-
-        const pedidos = [{ qtd, tamanho, sabores: [sabor], borda: false }];
-        const { resumo, subtotal } = calcularSubtotal(pedidos);
-
-        // Atualiza o estado do pedido para a próxima etapa
-        pedidosEmAndamento.set(from, { resumo, subtotal, pedidos, etapa: 'nome' });
-
-        return enviar(from, `🧾 RESUMO DO PEDIDO:${resumo}\n\nSubtotal: R$${subtotal.toFixed(2)}\n\nDigite seu nome:\n${exemplosEtapas.nome}`);
-    } else {
-        // Se a resposta não for válida, pede para tentar de novo
-        return enviar(from, `❌ Não entendi. Por favor, digite a quantidade e o tamanho. Exemplo: 1 G`);
-    }
-  }
-
-  // Lógica de parsing do pedido completo
-  if (!estado && /\d+\s*(P|G|F)/i.test(raw) && /(calabresa|frango|portuguesa|queijos|borda|metade)/i.test(raw)) {
-    const pedidos = parsePedido(raw);
-    if (!pedidos.length) return enviar(from, '❌ Não entendi seu pedido. 📌 Exemplo: 1 G Calabresa com borda e 1 F metade Frango/Catupiry, metade Portuguesa');
-    
-    // Calcula o subtotal sem a taxa de entrega
-    const { resumo, subtotal } = calcularSubtotal(pedidos);
-    pedidosEmAndamento.set(from, { resumo, subtotal, pedidos, etapa:'nome' });
-    
-    return enviar(from, `🧾 RESUMO DO PEDIDO:${resumo}\n\nSubtotal: R$${subtotal.toFixed(2)}\n\nDigite seu nome:\n${exemplosEtapas.nome}`);
-  }
-
-  if (estado) {
-    if (estado.etapa === 'nome' && !text.length) {
-      return enviar(from, `❌ Por favor, digite um nome válido.`);
-    }
-    if (estado.etapa === 'endereco' && !text.length) {
-      return enviar(from, `❌ Por favor, digite um endereço válido.`);
-    }
-
-    const etapaAtual = estado.etapa;
-    estado[etapaAtual] = raw;
-
-    const idx = etapas.indexOf(etapaAtual);
-    
-    // Lógica para a etapa do bairro
-    if (etapaAtual === 'bairro') {
-        const bairroNormalizado = estado.bairro.toLowerCase().trim();
-        
-        // Lógica de comparação aproximada para encontrar o bairro
-        let bairroEncontrado = TAXAS_ENTREGA.padrao;
-        let nomeBairroCorrigido = "Padrão";
-        
-        for (const bairro of Object.keys(TAXAS_ENTREGA)) {
-            if (bairro === 'padrao') continue;
-            const distance = levenshtein(bairroNormalizado, bairro);
-            if (distance <= 2) { // Considera um match se a distância for menor ou igual a 2
-                bairroEncontrado = TAXAS_ENTREGA[bairro];
-                nomeBairroCorrigido = bairro;
-                break;
-            }
-        }
-        
-        const total = estado.subtotal + bairroEncontrado;
-        
-        estado.taxaEntrega = bairroEncontrado;
-        estado.total = total;
-        estado.bairroCorrigido = nomeBairroCorrigido;
-
-        const resumoCompleto = `${estado.resumo}\n\nSubtotal: R$${estado.subtotal.toFixed(2)}\nTaxa de entrega (${estado.bairroCorrigido}): R$${bairroEncontrado.toFixed(2)}\nTotal: R$${total.toFixed(2)}`;
-        
-        estado.resumoCompleto = resumoCompleto;
-        estado.etapa = etapas[idx + 1];
-        pedidosEmAndamento.set(from, estado);
-        return enviar(from, `${resumoCompleto}\n\nDigite a forma de pagamento:\n${exemplosEtapas.pagamento}`);
-    }
-
-    // Se a etapa atual for a última, finalize o pedido
-    if (idx === etapas.length - 1) {
-      estado.status = estado.pagamento.toLowerCase().includes('pix') ? 'Pendente' : 'Pago';
-      salvarPedidoCSV({
-        nome: estado.nome,
-        endereco: estado.endereco,
-        bairro: estado.bairro,
-        pagamento: estado.pagamento,
-        pedidos: estado.resumo.replace(/\n/g,' | '),
-        total: estado.total,
-        status: estado.status,
-        numero: from
-      });
-
-      if (estado.status === 'Pendente') {
-        estado.aguardandoComprovante = true;
-        pedidosEmAndamento.set(from, estado);
-        return enviar(from, `💳 PIX — envie o comprovante (JPG, PNG ou PDF).\nChave: ${PIX_INFO.chave}\nNome: ${PIX_INFO.nome}\nBanco: ${PIX_INFO.banco}\nValor: R$${estado.total.toFixed(2)}`);
-      } else {
-        pedidosEmAndamento.delete(from);
-        return enviar(from, `✅ Pedido confirmado! Previsão: 40 minutos.`);
-      }
-    } else {
-      estado.etapa = etapas[idx + 1];
-      pedidosEmAndamento.set(from, estado);
-      return enviar(from, `Digite seu ${estado.etapa}:\n${exemplosEtapas[estado.etapa]}`);
-    }
-  }
-
-  // 🚀 Se chegou aqui, o bot não entendeu — IA assume
-  const respostaIA = await interpretarMensagem([{ role: 'cliente', text: raw }]);
-  return enviar(from, respostaIA);
-}
-
-// === Escuta de mensagens ===
-if (!modoSimulacao) {
-  client.on('message', async msg => {
-    const from = msg.from;
-    const estado = pedidosEmAndamento.get(from);
-
-    // Tratamento de comprovante
-    if (estado && estado.aguardandoComprovante && msg.hasMedia) {
-      const media = await msg.downloadMedia();
-      const ext = media.mimetype.split('/')[1]; // jpg, png, pdf
-      const filename = `${from.replace(/[^0-9]/g,'')}_${moment().format('YYYY-MM-DD_HH-mm')}.${ext}`;
-      const filepath = path.join(DIR_COMPROVANTES, filename);
-      fs.writeFileSync(filepath, media.data, 'base64');
-
-      pedidosEmAndamento.delete(from);
-      return enviar(from, `✅ Comprovante recebido! Seu pedido foi confirmado e está a caminho.`);
-    }
-
-    processarMensagem(from, msg.body, msg._data.notifyName || 'Cliente');
-  });
-} else {
-  console.log('🧪 Simulação ativa — digite mensagens:');
-  const readline = require('readline').createInterface({ input: process.stdin, output: process.stdout });
-  readline.on('line', line => processarMensagem('cliente-simulado', line, 'Cliente Teste'));
-
-}
+        const tamanho = match[2].to
